@@ -157,7 +157,18 @@ public class Client {
 
                     // set TimeOut value of the socket to 5msec.
                     // ....
+                    RTPsocket = new DatagramSocket(RTP_RCV_PORT);
+                    RTPsocket.setSoTimeout(5);
 
+                    RTSPSeqNb = 1;
+                    send_RTSP_request("SETUP");
+
+                    if (parse_server_response() != 200) {
+                        System.out.println("Invalid Server Response");
+                    } else {
+                        state = READY;
+                        System.out.println("New RTSP state: READY");
+                    }
                 } catch (SocketException se) {
                     System.out.println("Socket exception: " + se);
                     System.exit(0);
@@ -191,6 +202,7 @@ public class Client {
             if (state == READY) {
                 // increase RTSP sequence number
                 // .....
+                RTSPSeqNb++;
 
                 // Send PLAY message to the server
                 send_RTSP_request("PLAY");
@@ -202,6 +214,8 @@ public class Client {
                     // change RTSP state and print out new state
                     // .....
                     // System.out.println("New RTSP state: ...")
+                    state = PLAYING;
+                    System.out.println("New RTSP state: PLAYING");
 
                     // start the timer
                     timer.start();
@@ -220,6 +234,7 @@ public class Client {
             if (state == PLAYING) {
                 // increase RTSP sequence number
                 // ........
+                RTSPSeqNb++;
 
                 // Send PAUSE message to the server
                 send_RTSP_request("PAUSE");
@@ -231,6 +246,8 @@ public class Client {
                     // change RTSP state and print out new state
                     // ........
                     // System.out.println("New RTSP state: ...");
+                    state = READY;
+                    System.out.println("New RTSP state: READY");
 
                     // stop the timer
                     timer.stop();
@@ -249,6 +266,8 @@ public class Client {
 
             // increase RTSP sequence number
             // ..........
+            RTSPSeqNb++;
+
 
             // Send TEARDOWN message to the server
             send_RTSP_request("TEARDOWN");
@@ -260,6 +279,8 @@ public class Client {
                 // change RTSP state and print out new state
                 // ........
                 // System.out.println("New RTSP state: ...");
+                state = INIT;
+                System.out.println("New RTSP state: INIT");
 
                 // stop the timer
                 timer.stop();
@@ -375,6 +396,14 @@ public class Client {
             // if ....
             // otherwise, write the Session line from the RTSPid field
             // else ....
+            RTSPBufferedWriter.write(request_type + " " + VideoFileName + " RTSP/1.0" + CRLF);
+            RTSPBufferedWriter.write("CSeq: " + RTSPSeqNb + CRLF);
+
+            if (request_type.equals("SETUP")) {
+                RTSPBufferedWriter.write("Transport: RTP/UDP; client_port= " + RTP_RCV_PORT + CRLF);
+            } else {
+                RTSPBufferedWriter.write("Session: " + RTSPid + CRLF);
+            }
 
             RTSPBufferedWriter.flush();
         } catch (Exception ex) {
