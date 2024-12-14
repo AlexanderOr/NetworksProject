@@ -44,17 +44,17 @@ public class RTPpacket {
         header = new byte[HEADER_SIZE];
 
         // fill the header array of byte with RTP header fields
-        header[0] = new Integer((Version << 6) | (Padding << 5) | (Extension << 4) | CC).byteValue();
-        header[1] = new Integer((Marker << 7) | PayloadType).byteValue();
+        header[0] = (byte) ((Version << 6) | (Padding << 5) | (Extension << 4) | CC);
+        header[1] = (byte) ((Marker << 7) | PayloadType);
 
-        header[2] = new Integer(SequenceNumber >> 8).byteValue();
-        header[3] = new Integer(SequenceNumber).byteValue();
-
-        for (int i = 0; i < 4; i++)
-            header[7 - i] = new Integer(TimeStamp >> (8 * i)).byteValue();
+        header[2] = (byte) (SequenceNumber >> 8);
+        header[3] = (byte) (SequenceNumber);
 
         for (int i = 0; i < 4; i++)
-            header[11 - i] = new Integer(Ssrc >> (8 * i)).byteValue();
+            header[7 - i] =  (byte) (TimeStamp >> (8 * i));
+
+        for (int i = 0; i < 4; i++)
+            header[11 - i] = (byte) (Ssrc >> (8 * i));
 
         // fill the payload bitstream:
         // --------------------------
